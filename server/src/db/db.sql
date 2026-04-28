@@ -53,3 +53,22 @@ CREATE INDEX idx_password_reset_tokens_user_id ON password_reset_tokens(user_id)
 
 INSERT INTO roles (name) VALUES ('user');
 INSERT INTO roles (name) VALUES ('admin');
+
+CREATE TABLE customers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(30),
+    company VARCHAR(150),
+    city VARCHAR(100),
+    status VARCHAR(20) NOT NULL DEFAULT 'lead' CHECK (status IN ('active', 'inactive', 'lead')),
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_customers_user_id ON customers(user_id);
+CREATE INDEX idx_customers_status ON customers(status);
+CREATE INDEX idx_customers_email ON customers(email);

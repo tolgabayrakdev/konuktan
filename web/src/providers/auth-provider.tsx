@@ -24,7 +24,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const handler = () => {
-      if (useAuthStore.getState().isAuthenticated) {
+      const { isAuthenticated } = useAuthStore.getState()
+      const hadSession = !!localStorage.getItem("ks_had_session")
+      if (isAuthenticated || hadSession) {
         setSessionExpired(true)
       }
     }
@@ -67,7 +69,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   return (
     <>
       <SessionExpiredDialog />
-      {isAuthenticated && children}
+      {(isAuthenticated || sessionExpired) && children}
     </>
   )
 }

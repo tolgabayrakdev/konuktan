@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,8 +24,15 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Search, Download, Pencil, Trash2, Users } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Plus, Search, Download, FileText, Pencil, Trash2, Users, ChevronDown, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { apiClient, ApiClientError } from "@/lib/api-client"
 
 type Status = "active" | "inactive" | "lead"
 
@@ -33,29 +40,15 @@ interface Customer {
   id: string
   firstName: string
   lastName: string
-  email: string
-  phone: string
-  company: string
-  city: string
+  email: string | null
+  phone: string | null
+  company: string | null
+  city: string | null
   status: Status
-  notes: string
+  notes: string | null
   createdAt: string
+  updatedAt: string
 }
-
-const MOCK_CUSTOMERS: Customer[] = [
-  { id: "1", firstName: "Ahmet", lastName: "Yılmaz", email: "ahmet@yilmaz.com", phone: "0532 111 2233", company: "Yılmaz Yapı", city: "İstanbul", status: "active", notes: "VIP müşteri", createdAt: "2025-01-10" },
-  { id: "2", firstName: "Fatma", lastName: "Kaya", email: "fatma@kayatekstil.com", phone: "0533 222 3344", company: "Kaya Tekstil", city: "Bursa", status: "active", notes: "", createdAt: "2025-01-15" },
-  { id: "3", firstName: "Mehmet", lastName: "Demir", email: "mehmet.demir@gmail.com", phone: "0541 333 4455", company: "", city: "Ankara", status: "lead", notes: "Fiyat teklifi bekleniyor", createdAt: "2025-02-03" },
-  { id: "4", firstName: "Ayşe", lastName: "Çelik", email: "ayse@celikholding.com", phone: "0542 444 5566", company: "Çelik Holding", city: "İzmir", status: "active", notes: "", createdAt: "2025-02-11" },
-  { id: "5", firstName: "Mustafa", lastName: "Şahin", email: "mustafa@sahinlojistik.com", phone: "0543 555 6677", company: "Şahin Lojistik", city: "Konya", status: "inactive", notes: "Sözleşme yenilenmedi", createdAt: "2025-02-20" },
-  { id: "6", firstName: "Zeynep", lastName: "Arslan", email: "zeynep.arslan@outlook.com", phone: "0544 666 7788", company: "Arslan Gıda", city: "Adana", status: "lead", notes: "Demo gösterimi yapıldı", createdAt: "2025-03-01" },
-  { id: "7", firstName: "Hasan", lastName: "Koç", email: "hasan@kocinsaat.com.tr", phone: "0545 777 8899", company: "Koç İnşaat", city: "İstanbul", status: "active", notes: "", createdAt: "2025-03-07" },
-  { id: "8", firstName: "Elif", lastName: "Aydın", email: "elif.aydin@gmail.com", phone: "0546 888 9900", company: "", city: "Antalya", status: "inactive", notes: "", createdAt: "2025-03-14" },
-  { id: "9", firstName: "İbrahim", lastName: "Öztürk", email: "ibrahim@ozturkmarket.com", phone: "0547 999 0011", company: "Öztürk Market", city: "Samsun", status: "active", notes: "Aylık fatura", createdAt: "2025-03-21" },
-  { id: "10", firstName: "Merve", lastName: "Yıldız", email: "merve.yildiz@hotmail.com", phone: "0548 000 1122", company: "Yıldız Mühendislik", city: "Gaziantep", status: "lead", notes: "", createdAt: "2025-04-02" },
-  { id: "11", firstName: "Emre", lastName: "Güneş", email: "emre@gunesoto.com", phone: "0549 111 2233", company: "Güneş Otomotiv", city: "Kayseri", status: "active", notes: "", createdAt: "2025-04-09" },
-  { id: "12", firstName: "Selin", lastName: "Aktaş", email: "selin.aktas@aktas.com.tr", phone: "0550 222 3344", company: "Aktaş Tarım", city: "Konya", status: "active", notes: "Sezonluk görüşme", createdAt: "2025-04-15" },
-]
 
 const STATUS_CONFIG: Record<Status, { label: string; className: string }> = {
   active: { label: "Aktif", className: "bg-emerald-500/10 text-emerald-600 border-emerald-200 dark:border-emerald-800" },
@@ -70,28 +63,22 @@ const FILTER_TABS: { value: "all" | Status; label: string }[] = [
   { value: "inactive", label: "Pasif" },
 ]
 
-const EMPTY_FORM: Omit<Customer, "id" | "createdAt"> = {
+const EMPTY_FORM = {
   firstName: "",
   lastName: "",
   email: "",
   phone: "",
   company: "",
   city: "",
-  status: "lead",
+  status: "lead" as Status,
   notes: "",
 }
 
 function exportCSV(customers: Customer[]) {
   const headers = ["Ad", "Soyad", "E-posta", "Telefon", "Şirket", "Şehir", "Durum", "Kayıt Tarihi"]
   const rows = customers.map((c) => [
-    c.firstName,
-    c.lastName,
-    c.email,
-    c.phone,
-    c.company,
-    c.city,
-    STATUS_CONFIG[c.status].label,
-    c.createdAt,
+    c.firstName, c.lastName, c.email ?? "", c.phone ?? "", c.company ?? "", c.city ?? "",
+    STATUS_CONFIG[c.status].label, c.createdAt.slice(0, 10),
   ])
   const csv = [headers, ...rows].map((r) => r.map((v) => `"${v}"`).join(",")).join("\n")
   const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" })
@@ -103,9 +90,69 @@ function exportCSV(customers: Customer[]) {
   URL.revokeObjectURL(url)
 }
 
-export default function Musteriler() {
-  const [customers, setCustomers] = useState<Customer[]>(MOCK_CUSTOMERS)
+function exportPDF(customers: Customer[]) {
+  const date = new Date().toLocaleDateString("tr-TR")
+  const rows = customers.map((c) => `
+    <tr>
+      <td>${c.firstName} ${c.lastName}</td>
+      <td>${c.company || "—"}</td>
+      <td>${c.email || "—"}</td>
+      <td>${c.phone || "—"}</td>
+      <td>${c.city || "—"}</td>
+      <td class="status status-${c.status}">${STATUS_CONFIG[c.status].label}</td>
+      <td>${c.createdAt.slice(0, 10)}</td>
+    </tr>`).join("")
+
+  const html = `<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Müşteri Listesi</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 11px; color: #111; padding: 32px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; border-bottom: 2px solid #111; padding-bottom: 12px; }
+    .header h1 { font-size: 20px; font-weight: 700; }
+    .header span { font-size: 10px; color: #666; }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: #f4f4f5; }
+    th { text-align: left; padding: 8px 10px; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #555; border-bottom: 1px solid #e4e4e7; }
+    td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    .status { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 600; }
+    .status-active { background: #d1fae5; color: #065f46; }
+    .status-inactive { background: #f4f4f5; color: #71717a; }
+    .status-lead { background: #fef3c7; color: #92400e; }
+    .footer { margin-top: 20px; font-size: 9px; color: #aaa; text-align: right; }
+    @media print { body { padding: 16px; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div><h1>Müşteri Listesi</h1><span>${customers.length} kayıt</span></div>
+    <span>${date}</span>
+  </div>
+  <table>
+    <thead><tr><th>Ad Soyad</th><th>Şirket</th><th>E-posta</th><th>Telefon</th><th>Şehir</th><th>Durum</th><th>Kayıt Tarihi</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div class="footer">Konuktan CRM · ${date}</div>
+</body>
+</html>`
+
+  const win = window.open("", "_blank")
+  if (!win) return
+  win.document.write(html)
+  win.document.close()
+  win.focus()
+  win.print()
+}
+
+export default function Customers() {
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<"all" | Status>("all")
 
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -114,22 +161,49 @@ export default function Musteriler() {
   const [saving, setSaving] = useState(false)
 
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase()
-    return customers.filter((c) => {
-      const matchStatus = statusFilter === "all" || c.status === statusFilter
-      const matchSearch =
-        !q ||
-        c.firstName.toLowerCase().includes(q) ||
-        c.lastName.toLowerCase().includes(q) ||
-        c.email.toLowerCase().includes(q) ||
-        c.company.toLowerCase().includes(q) ||
-        c.city.toLowerCase().includes(q) ||
-        c.phone.includes(q)
-      return matchStatus && matchSearch
-    })
-  }, [customers, search, statusFilter])
+  // Debounce search
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 350)
+    return () => clearTimeout(t)
+  }, [search])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const load = async () => {
+      setLoading(true)
+      try {
+        const params = new URLSearchParams({ limit: "100" })
+        if (debouncedSearch) params.set("search", debouncedSearch)
+        const res = await apiClient.get<{ success: boolean; data: Customer[] }>(`/api/customers?${params}`)
+        if (!cancelled) setCustomers(res.data)
+      } catch (err) {
+        if (!cancelled) {
+          const msg = err instanceof ApiClientError ? err.data.message : undefined
+          toast.error(msg ?? "Müşteriler yüklenemedi")
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    load()
+    return () => { cancelled = true }
+  }, [debouncedSearch])
+
+  const filtered = useMemo(() =>
+    statusFilter === "all" ? customers : customers.filter((c) => c.status === statusFilter),
+    [customers, statusFilter]
+  )
+
+  const counts = useMemo(() => ({
+    all: customers.length,
+    active: customers.filter((c) => c.status === "active").length,
+    lead: customers.filter((c) => c.status === "lead").length,
+    inactive: customers.filter((c) => c.status === "inactive").length,
+  }), [customers])
 
   const openAdd = () => {
     setEditingId(null)
@@ -139,7 +213,16 @@ export default function Musteriler() {
 
   const openEdit = (c: Customer) => {
     setEditingId(c.id)
-    setForm({ firstName: c.firstName, lastName: c.lastName, email: c.email, phone: c.phone, company: c.company, city: c.city, status: c.status, notes: c.notes })
+    setForm({
+      firstName: c.firstName,
+      lastName: c.lastName,
+      email: c.email ?? "",
+      phone: c.phone ?? "",
+      company: c.company ?? "",
+      city: c.city ?? "",
+      status: c.status,
+      notes: c.notes ?? "",
+    })
     setSheetOpen(true)
   }
 
@@ -149,36 +232,40 @@ export default function Musteriler() {
       return
     }
     setSaving(true)
-    await new Promise((r) => setTimeout(r, 400))
-    if (editingId) {
-      setCustomers((prev) => prev.map((c) => c.id === editingId ? { ...c, ...form } : c))
-      toast.success("Müşteri güncellendi")
-    } else {
-      const newCustomer: Customer = {
-        ...form,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString().slice(0, 10),
+    try {
+      if (editingId) {
+        const res = await apiClient.patch<{ success: boolean; data: Customer }>(`/api/customers/${editingId}`, form)
+        setCustomers((prev) => prev.map((c) => c.id === editingId ? res.data : c))
+        toast.success("Müşteri güncellendi")
+      } else {
+        const res = await apiClient.post<{ success: boolean; data: Customer }>("/api/customers", form)
+        setCustomers((prev) => [res.data, ...prev])
+        toast.success("Müşteri eklendi")
       }
-      setCustomers((prev) => [newCustomer, ...prev])
-      toast.success("Müşteri eklendi")
+      setSheetOpen(false)
+    } catch (err) {
+      const msg = err instanceof ApiClientError ? err.data.message : undefined
+      toast.error(msg ?? "İşlem başarısız")
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
-    setSheetOpen(false)
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteId) return
-    setCustomers((prev) => prev.filter((c) => c.id !== deleteId))
-    toast.success("Müşteri silindi")
-    setDeleteId(null)
+    setDeleting(true)
+    try {
+      await apiClient.delete(`/api/customers/${deleteId}`)
+      setCustomers((prev) => prev.filter((c) => c.id !== deleteId))
+      toast.success("Müşteri silindi")
+      setDeleteId(null)
+    } catch (err) {
+      const msg = err instanceof ApiClientError ? err.data.message : undefined
+      toast.error(msg ?? "Silinemedi")
+    } finally {
+      setDeleting(false)
+    }
   }
-
-  const counts = useMemo(() => ({
-    all: customers.length,
-    active: customers.filter((c) => c.status === "active").length,
-    lead: customers.filter((c) => c.status === "lead").length,
-    inactive: customers.filter((c) => c.status === "inactive").length,
-  }), [customers])
 
   return (
     <div className="p-8 space-y-6">
@@ -186,13 +273,30 @@ export default function Musteriler() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Müşteriler</h1>
-          <p className="text-sm text-muted-foreground mt-1">{customers.length} müşteri kayıtlı</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {loading ? "Yükleniyor..." : `${customers.length} müşteri kayıtlı`}
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => exportCSV(filtered)} className="gap-1.5">
-            <Download className="size-4" />
-            Dışa Aktar
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1.5" disabled={loading || customers.length === 0}>
+                <Download className="size-4" />
+                Dışa Aktar
+                <ChevronDown className="size-3.5 opacity-60" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => exportCSV(filtered)}>
+                <Download className="size-4 mr-2" />
+                CSV olarak indir
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportPDF(filtered)}>
+                <FileText className="size-4 mr-2" />
+                PDF olarak kaydet
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button size="sm" onClick={openAdd} className="gap-1.5">
             <Plus className="size-4" />
             Müşteri Ekle
@@ -248,12 +352,18 @@ export default function Musteriler() {
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-16 text-muted-foreground">
+                    <Loader2 className="size-6 animate-spin mx-auto" />
+                  </td>
+                </tr>
+              ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-16 text-muted-foreground">
                     <div className="flex flex-col items-center gap-2">
                       <Users className="size-8 opacity-30" />
-                      <p>Müşteri bulunamadı</p>
+                      <p>{search ? "Arama sonucu bulunamadı" : "Henüz müşteri yok"}</p>
                     </div>
                   </td>
                 </tr>
@@ -267,9 +377,9 @@ export default function Musteriler() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{c.company || "—"}</td>
-                    <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell">{c.email}</td>
-                    <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell">{c.phone}</td>
-                    <td className="px-4 py-3 text-muted-foreground hidden xl:table-cell">{c.city}</td>
+                    <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell">{c.email || "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell">{c.phone || "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground hidden xl:table-cell">{c.city || "—"}</td>
                     <td className="px-4 py-3">
                       <Badge variant="outline" className={cn("text-xs font-medium", STATUS_CONFIG[c.status].className)}>
                         {STATUS_CONFIG[c.status].label}
@@ -280,7 +390,12 @@ export default function Musteriler() {
                         <Button variant="ghost" size="icon" className="size-8" onClick={() => openEdit(c)}>
                           <Pencil className="size-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => setDeleteId(c.id)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => setDeleteId(c.id)}
+                        >
                           <Trash2 className="size-3.5" />
                         </Button>
                       </div>
@@ -292,7 +407,7 @@ export default function Musteriler() {
           </table>
         </div>
 
-        {filtered.length > 0 && (
+        {!loading && filtered.length > 0 && (
           <div className="px-4 py-3 border-t bg-muted/20 text-xs text-muted-foreground">
             {filtered.length} sonuç gösteriliyor{filtered.length !== customers.length && ` (toplam ${customers.length})`}
           </div>
@@ -373,14 +488,14 @@ export default function Musteriler() {
               İptal
             </Button>
             <Button onClick={handleSave} disabled={saving} className="min-w-24">
-              {saving ? "Kaydediliyor..." : editingId ? "Güncelle" : "Ekle"}
+              {saving ? <Loader2 className="size-4 animate-spin" /> : editingId ? "Güncelle" : "Ekle"}
             </Button>
           </SheetFooter>
         </SheetContent>
       </Sheet>
 
       {/* Silme onayı */}
-      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
+      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && !deleting && setDeleteId(null)}>
         <AlertDialogContent size="sm">
           <AlertDialogHeader>
             <AlertDialogTitle>Müşteri silinsin mi?</AlertDialogTitle>
@@ -389,9 +504,13 @@ export default function Musteriler() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>İptal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Sil
+            <AlertDialogCancel disabled={deleting}>İptal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 min-w-16"
+            >
+              {deleting ? <Loader2 className="size-4 animate-spin" /> : "Sil"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
