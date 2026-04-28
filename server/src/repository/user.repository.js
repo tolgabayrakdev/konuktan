@@ -3,7 +3,7 @@ import { query } from '../config/db.js';
 export class UserRepository {
   async findById(id) {
     const result = await query(
-      `SELECT u.id, u.email, u.username, u.is_active, u.created_at, u.updated_at, r.name as role
+      `SELECT u.id, u.email, u.is_active, u.created_at, u.updated_at, r.name as role
        FROM users u
        JOIN roles r ON u.role_id = r.id
        WHERE u.id = $1`,
@@ -17,10 +17,6 @@ export class UserRepository {
     const values = [id];
     let paramIndex = 2;
 
-    if (data.username !== undefined) {
-      fields.push(`username = $${paramIndex++}`);
-      values.push(data.username);
-    }
     if (data.email !== undefined) {
       fields.push(`email = $${paramIndex++}`);
       values.push(data.email);
@@ -34,7 +30,7 @@ export class UserRepository {
 
     fields.push(`updated_at = NOW()`);
     const result = await query(
-      `UPDATE users SET ${fields.join(', ')} WHERE id = $1 RETURNING id, email, username, is_active, updated_at`,
+      `UPDATE users SET ${fields.join(', ')} WHERE id = $1 RETURNING id, email, is_active, updated_at`,
       values
     );
     return result.rows[0] || null;

@@ -3,7 +3,7 @@ import { query } from '../config/db.js';
 export class AuthRepository {
   async findUserByEmail(email) {
     const result = await query(
-      `SELECT u.id, u.email, u.username, u.password, u.is_active, u.is_verified, r.name as role
+      `SELECT u.id, u.email, u.password, u.is_active, u.is_verified, r.name as role
        FROM users u
        JOIN roles r ON u.role_id = r.id
        WHERE u.email = $1`,
@@ -14,7 +14,7 @@ export class AuthRepository {
 
   async findUserById(id) {
     const result = await query(
-      `SELECT u.id, u.email, u.username, u.is_active, u.is_verified, r.name as role
+      `SELECT u.id, u.email, u.is_active, u.is_verified, r.name as role
        FROM users u
        JOIN roles r ON u.role_id = r.id
        WHERE u.id = $1`,
@@ -23,22 +23,17 @@ export class AuthRepository {
     return result.rows[0] || null;
   }
 
-  async findUserByUsername(username) {
-    const result = await query(`SELECT u.id FROM users u WHERE u.username = $1`, [username]);
-    return result.rows[0] || null;
-  }
-
-  async createUser({ email, username, password, roleId }) {
+  async createUser({ email, password, roleId }) {
     const result = await query(
-      `INSERT INTO users (email, username, password, role_id) VALUES ($1, $2, $3, $4) RETURNING id, email, username, is_active, is_verified, created_at`,
-      [email, username, password, roleId]
+      `INSERT INTO users (email, password, role_id) VALUES ($1, $2, $3) RETURNING id, email, is_active, is_verified, created_at`,
+      [email, password, roleId]
     );
     return result.rows[0];
   }
 
   async verifyUser(userId) {
     const result = await query(
-      `UPDATE users SET is_verified = TRUE, is_active = TRUE, updated_at = NOW() WHERE id = $1 RETURNING id, email, username, is_active, is_verified`,
+      `UPDATE users SET is_verified = TRUE, is_active = TRUE, updated_at = NOW() WHERE id = $1 RETURNING id, email, is_active, is_verified`,
       [userId]
     );
     return result.rows[0] || null;
@@ -79,7 +74,7 @@ export class AuthRepository {
 
   async findRefreshToken(token) {
     const result = await query(
-      `SELECT rt.id, rt.user_id, rt.expires_at, u.email, u.username, u.is_active, u.is_verified, r.name as role
+      `SELECT rt.id, rt.user_id, rt.expires_at, u.email, u.is_active, u.is_verified, r.name as role
        FROM refresh_tokens rt
        JOIN users u ON rt.user_id = u.id
        JOIN roles r ON u.role_id = r.id

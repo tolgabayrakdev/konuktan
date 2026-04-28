@@ -9,7 +9,6 @@ CREATE TABLE roles (
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) UNIQUE NOT NULL,
-    username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     role_id UUID NOT NULL REFERENCES roles(id) ON DELETE RESTRICT,
     is_active BOOLEAN DEFAULT FALSE,
@@ -35,7 +34,6 @@ CREATE TABLE refresh_tokens (
 );
 
 CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_role_id ON users(role_id);
 CREATE INDEX idx_verification_codes_user_id ON verification_codes(user_id);
 CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens(user_id);

@@ -22,15 +22,10 @@ export class AuthService {
     this.userRepo = new UserRepository();
   }
 
-  async register({ email, username, password }) {
+  async register({ email, password }) {
     const existingUser = await this.authRepo.findUserByEmail(email);
     if (existingUser) {
       throw new ConflictError('Email already registered');
-    }
-
-    const existingUsername = await this.authRepo.findUserByUsername(username);
-    if (existingUsername) {
-      throw new ConflictError('Username already taken');
     }
 
     const defaultRole = await this.authRepo.findRoleByName('user');
@@ -38,12 +33,11 @@ export class AuthService {
 
     const user = await this.authRepo.createUser({
       email,
-      username,
       password: hashedPassword,
       roleId: defaultRole.id,
     });
 
-    return { id: user.id, email: user.email, username: user.username };
+    return { id: user.id, email: user.email };
   }
 
   async verify({ email, code }) {
@@ -64,7 +58,7 @@ export class AuthService {
     await this.authRepo.deleteVerificationCodesByUserId(user.id);
     await this.authRepo.verifyUser(user.id);
 
-    return { id: user.id, email: user.email, username: user.username, isVerified: true };
+    return { id: user.id, email: user.email, isVerified: true };
   }
 
   async resendVerificationCode(userId) {
@@ -147,7 +141,7 @@ export class AuthService {
     const tokens = await this._generateTokens(tokenPayload, user.id);
 
     return {
-      user: { id: user.id, email: user.email, username: user.username, role: user.role },
+      user: { id: user.id, email: user.email, role: user.role },
       tokens,
     };
   }
