@@ -1,0 +1,33 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <title>W Logo Crystal Zinc</title>
+  <defs>
+    <linearGradient id="zinc1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#71717A"/>
+      <stop offset="100%" stop-color="#18181B"/>
+    </linearGradient>
+    <linearGradient id="zinc2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A1A1AA"/>
+      <stop offset="100%" stop-color="#3F3F46"/>
+    </linearGradient>
+  </defs>
+
+  <polygon points="100,0 170,30 200,100 170,170 100,200 30,170 0,100 30,30" fill="#18181B" opacity="0.12"/>
+  <polygon points="100,0 170,30 200,100 170,170 100,200 30,170 0,100 30,30" fill="none" stroke="url(#zinc2)" stroke-width="2" opacity="0.9"/>
+  <polygon points="100,8 163,35 190,100 163,165 100,192 37,165 10,100 37,35" fill="none" stroke="#3F3F46" stroke-width="0.8" opacity="0.5"/>
+
+  <path d="M38 58 L65 155 L100 98 L135 155 L162 58" fill="none" stroke="url(#zinc1)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M38 58 L65 155 L100 98 L135 155 L162 58" fill="none" stroke="#A1A1AA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+
+  <circle cx="38" cy="58" r="5.5" fill="#52525B"/>
+  <circle cx="38" cy="58" r="2.5" fill="#A1A1AA"/>
+  <circle cx="162" cy="58" r="5.5" fill="#52525B"/>
+  <circle cx="162" cy="58" r="2.5" fill="#A1A1AA"/>
+  <circle cx="65" cy="155" r="5" fill="#3F3F46"/>
+  <circle cx="65" cy="155" r="2" fill="#71717A"/>
+  <circle cx="135" cy="155" r="5" fill="#3F3F46"/>
+  <circle cx="135" cy="155" r="2" fill="#71717A"/>
+  <circle cx="100" cy="98" r="6.5" fill="#27272A"/>
+  <circle cx="100" cy="98" r="3" fill="#E4E4E7"/>
+
+  <line x1="33" y1="58" x2="167" y2="58" stroke="#52525B" stroke-width="1" opacity="0.4"/>
+</svg>

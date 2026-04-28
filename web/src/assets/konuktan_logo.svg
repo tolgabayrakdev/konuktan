@@ -1,0 +1,17 @@
+<svg width="680" height="680" viewBox="0 0 680 680" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Konuktan Logo</title>
+  <desc>Siyah daire içinde beyaz KT harfleri olan minimalist logo, şeffaf arka plan</desc>
+
+  <circle cx="340" cy="340" r="310" fill="#111111"/>
+
+  <text
+    x="340"
+    y="430"
+    text-anchor="middle"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="280"
+    font-weight="700"
+    fill="#ffffff"
+    letter-spacing="-18"
+  >KT</text>
+</svg>
