@@ -95,6 +95,7 @@ export default function SignIn() {
         <AuthLeftPanel
           heading={<>Hesabınızı<br />doğrulayın</>}
           description="E-posta adresinize gönderilen 6 haneli kodu girerek kimliğinizi doğrulayın."
+          showFeatures={false}
         />
 
         <div className="flex items-center justify-center p-8">
@@ -175,8 +176,9 @@ export default function SignIn() {
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       <AuthLeftPanel
-        heading={<>İşinizi dijital<br />dünyaya taşıyın</>}
-        description="Modern ve güvenli platformumuz ile iş süreçlerinizi optimize edin, verimliliğinizi artırın."
+        heading={<>Tekrar hoş<br />geldiniz</>}
+        description="Müşterileriniz sizi bekliyor. Hesabınıza giriş yapın ve kaldığınız yerden devam edin."
+        showFeatures={false}
       />
 
       <div className="flex items-center justify-center p-8">

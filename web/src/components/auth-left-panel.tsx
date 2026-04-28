@@ -1,30 +1,31 @@
-import { Shield, Zap, BarChart3 } from "lucide-react"
+import { Users, BadgeCheck, Wallet } from "lucide-react"
 import konuktanLogo from "@/assets/konuktan_logo.svg"
 
 const features = [
   {
-    icon: Shield,
-    title: "Güvenli Altyapı",
-    desc: "Verileriniz uçtan uca şifrelenmiş ve güvende",
+    icon: Users,
+    title: "Müşteri Takibi",
+    desc: "Tüm müşterilerinizi tek ekrandan kolayca yönetin",
   },
   {
-    icon: Zap,
-    title: "Hızlı ve Güvenilir",
-    desc: "Kesintisiz hizmet, anında erişim",
+    icon: Wallet,
+    title: "Tamamen Ücretsiz",
+    desc: "Herhangi bir ücret ödemeden tüm özelliklere erişin",
   },
   {
-    icon: BarChart3,
-    title: "Güçlü Analitik",
-    desc: "İş süreçlerinizi veriye dayalı optimize edin",
+    icon: BadgeCheck,
+    title: "Kullanımı Kolay",
+    desc: "Teknik bilgi gerektirmez, hemen kullanmaya başlayın",
   },
 ]
 
 interface AuthLeftPanelProps {
   heading: React.ReactNode
   description: string
+  showFeatures?: boolean
 }
 
-export function AuthLeftPanel({ heading, description }: AuthLeftPanelProps) {
+export function AuthLeftPanel({ heading, description, showFeatures = true }: AuthLeftPanelProps) {
   return (
     <div className="hidden lg:flex flex-col relative overflow-hidden bg-slate-950 p-12 text-white select-none">
       {/* Decorative blobs */}
@@ -51,7 +52,7 @@ export function AuthLeftPanel({ heading, description }: AuthLeftPanelProps) {
         </div>
 
         {/* Main content */}
-        <div className="flex-1 flex flex-col justify-center space-y-10">
+        <div className={`flex-1 flex flex-col justify-center ${showFeatures ? "space-y-10" : "space-y-6"}`}>
           <div className="space-y-4">
             <h2 className="text-[2.6rem] font-bold leading-[1.15] tracking-tight">
               {heading}
@@ -61,24 +62,26 @@ export function AuthLeftPanel({ heading, description }: AuthLeftPanelProps) {
             </p>
           </div>
 
-          {/* Feature list */}
-          <div className="space-y-5">
-            {features.map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="flex items-start gap-3.5">
-                <div className="size-9 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center shrink-0 mt-0.5 backdrop-blur-sm">
-                  <Icon className="size-4 text-white/70" />
+          {/* Feature list — sadece sign-up'ta göster */}
+          {showFeatures && (
+            <div className="space-y-5">
+              {features.map(({ icon: Icon, title, desc }) => (
+                <div key={title} className="flex items-start gap-3.5">
+                  <div className="size-9 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center shrink-0 mt-0.5 backdrop-blur-sm">
+                    <Icon className="size-4 text-white/70" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium leading-none mb-1">{title}</p>
+                    <p className="text-white/45 text-xs leading-relaxed">{desc}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium leading-none mb-1">{title}</p>
-                  <p className="text-white/45 text-xs leading-relaxed">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Footer */}
-        <p className="text-xs text-white/25">© 2026 konuktan. Tüm hakları saklıdır.</p>
+        <p className="text-xs text-white/25">İşletmeniz için ücretsiz müşteri yönetimi</p>
       </div>
     </div>
   )

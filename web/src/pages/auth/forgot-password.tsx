@@ -33,6 +33,7 @@ export default function ForgotPassword() {
         <AuthLeftPanel
           heading={<>Bağlantı<br />gönderildi!</>}
           description="E-posta adresinize şifre sıfırlama bağlantısı gönderdik. Gelen kutunuzu kontrol edin."
+          showFeatures={false}
         />
 
         <div className="flex items-center justify-center p-8">
@@ -79,6 +80,7 @@ export default function ForgotPassword() {
       <AuthLeftPanel
         heading={<>Şifrenizi mi<br />unuttunuz?</>}
         description="Endişelenmeyin, e-posta adresinizi girerek şifrenizi kolayca sıfırlayabilirsiniz."
+        showFeatures={false}
       />
 
       <div className="flex items-center justify-center p-8">

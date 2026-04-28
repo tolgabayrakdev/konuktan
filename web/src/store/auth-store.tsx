@@ -5,7 +5,6 @@ import env from "@/config/env"
 export interface User {
   id: string
   email: string
-  username: string
   role: string
 }
 
@@ -17,7 +16,7 @@ interface AuthState {
   rateLimited: boolean
   setSessionExpired: (val: boolean) => void
   login: (email: string, password: string) => Promise<void>
-  register: (email: string, username: string, password: string) => Promise<void>
+  register: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   checkAuth: () => Promise<boolean>
   extendSession: () => Promise<void>
@@ -34,8 +33,8 @@ export const useAuthStore = create<AuthState>()((set) => ({
     const res = await apiClient.post<{ success: boolean; data: User }>("/api/auth/login", { email, password })
     set({ user: res.data, isAuthenticated: true })
   },
-  register: async (email: string, username: string, password: string) => {
-    await apiClient.post("/api/auth/register", { email, username, password })
+  register: async (email: string, password: string) => {
+    await apiClient.post("/api/auth/register", { email, password })
   },
   logout: async () => {
     try {

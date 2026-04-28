@@ -16,7 +16,6 @@ export default function SignUp() {
   const [registered, setRegistered] = useState(false)
   const [formData, setFormData] = useState({
     email: "",
-    username: "",
     password: "",
     confirmPassword: "",
     terms: false,
@@ -43,7 +42,7 @@ export default function SignUp() {
     }
     setLoading(true)
     try {
-      await register(formData.email, formData.username, formData.password)
+      await register(formData.email, formData.password)
       setRegistered(true)
     } catch (error) {
       const message = error instanceof ApiClientError ? error.data.message : "Kayıt yapılamadı"
@@ -122,20 +121,6 @@ export default function SignUp() {
                 placeholder="ornek@email.com"
                 className="h-11"
                 value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="username">Kullanıcı adı</Label>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                placeholder="kullaniciadi"
-                className="h-11"
-                value={formData.username}
                 onChange={handleChange}
                 required
               />
