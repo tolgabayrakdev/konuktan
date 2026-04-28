@@ -5,45 +5,12 @@ import { Button } from "@/components/ui/button"
 import { PasswordInput } from "@/components/ui/password-input"
 import { Spinner } from "@/components/ui/spinner"
 import { useAuthStore } from "@/store/auth-store"
-import type { User } from "@/store/auth-store"
 import { apiClient, ApiClientError } from "@/lib/api-client"
 import { toast } from "sonner"
 import { Pencil, TriangleAlertIcon } from "lucide-react"
 
 export default function Settings() {
   const { user, logout } = useAuthStore()
-
-  // --- Profile ---
-  const [profileEditing, setProfileEditing] = useState(false)
-  const [profileForm, setProfileForm] = useState({
-    username: user?.username ?? "",
-    email: user?.email ?? "",
-  })
-  const [profileLoading, setProfileLoading] = useState(false)
-
-  const handleProfileEdit = () => {
-    setProfileForm({ username: user?.username ?? "", email: user?.email ?? "" })
-    setProfileEditing(true)
-  }
-
-  const handleProfileCancel = () => {
-    setProfileEditing(false)
-    setProfileForm({ username: user?.username ?? "", email: user?.email ?? "" })
-  }
-
-  const handleProfileSave = async () => {
-    setProfileLoading(true)
-    try {
-      const res = await apiClient.patch<{ success: boolean; data: User }>("/api/account/me", profileForm)
-      useAuthStore.setState({ user: res.data })
-      setProfileEditing(false)
-      toast.success("Profil bilgileri güncellendi.")
-    } catch (err) {
-      toast.error(err instanceof ApiClientError ? (err.data.message ?? "Profil güncellenemedi.") : "Bir hata oluştu.")
-    } finally {
-      setProfileLoading(false)
-    }
-  }
 
   // --- Password ---
   const [passwordEditing, setPasswordEditing] = useState(false)
@@ -110,50 +77,17 @@ export default function Settings() {
       {/* Profile */}
       <SettingsSection
         title="Profil Bilgileri"
-        description="Kullanıcı adınız ve e-posta adresiniz hesabınızı tanımlar."
+        description="Hesabınıza ait e-posta adresi."
       >
-        <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="username">Kullanıcı Adı</Label>
-              <Input
-                id="username"
-                value={profileEditing ? profileForm.username : (user?.username ?? "")}
-                onChange={(e) => setProfileForm((p) => ({ ...p, username: e.target.value }))}
-                readOnly={!profileEditing}
-                className={!profileEditing ? "bg-muted/40 cursor-default" : ""}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="email">E-posta</Label>
-              <Input
-                id="email"
-                type="email"
-                value={profileEditing ? profileForm.email : (user?.email ?? "")}
-                onChange={(e) => setProfileForm((p) => ({ ...p, email: e.target.value }))}
-                readOnly={!profileEditing}
-                className={!profileEditing ? "bg-muted/40 cursor-default" : ""}
-              />
-            </div>
-          </div>
-          <div className="flex items-center justify-end gap-2 pt-1">
-            {profileEditing ? (
-              <>
-                <Button variant="outline" onClick={handleProfileCancel} disabled={profileLoading}>
-                  İptal
-                </Button>
-                <Button onClick={handleProfileSave} disabled={profileLoading} className="min-w-24">
-                  {profileLoading && <Spinner className="mr-2" />}
-                  Kaydet
-                </Button>
-              </>
-            ) : (
-              <Button variant="outline" onClick={handleProfileEdit} className="gap-1.5">
-                <Pencil className="size-3.5" />
-                Düzenle
-              </Button>
-            )}
-          </div>
+        <div className="space-y-1.5 max-w-sm">
+          <Label htmlFor="email">E-posta</Label>
+          <Input
+            id="email"
+            type="email"
+            value={user?.email ?? ""}
+            readOnly
+            className="bg-muted/40 cursor-default"
+          />
         </div>
       </SettingsSection>
 
@@ -268,13 +202,13 @@ export default function Settings() {
               <p className="text-sm font-medium">Bu işlem geri alınamaz.</p>
             </div>
             <p className="text-sm text-muted-foreground">
-              Onaylamak için kullanıcı adınızı yazın:{" "}
-              <span className="font-semibold text-foreground">{user?.username}</span>
+              Onaylamak için e-posta adresinizi yazın:{" "}
+              <span className="font-semibold text-foreground">{user?.email}</span>
             </p>
             <Input
               value={deleteConfirm}
               onChange={(e) => setDeleteConfirm(e.target.value)}
-              placeholder={user?.username}
+              placeholder={user?.email}
               className="max-w-sm"
             />
             <div className="flex gap-2 justify-end">
@@ -288,7 +222,7 @@ export default function Settings() {
               <Button
                 variant="destructive"
                 onClick={handleDeleteAccount}
-                disabled={deleteConfirm !== user?.username || deleteLoading}
+                disabled={deleteConfirm !== user?.email || deleteLoading}
                 className="min-w-28"
               >
                 {deleteLoading && <Spinner className="mr-2" />}

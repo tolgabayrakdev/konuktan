@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { Outlet, Link, useLocation } from "react-router"
 import { useAuthStore } from "@/store/auth-store"
+import { useTheme } from "@/providers/theme-provider"
 import AuthProvider from "@/providers/auth-provider"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,41 +13,36 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
   LayoutDashboard,
+  Users,
   Settings,
   LogOut,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Menu,
+  Sun,
+  Moon,
+  Monitor,
+  Check,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import konuktanLogo from "@/assets/konuktan_logo.svg"
-import { ModeToggle } from "@/components/mode-toggle"
 
 const navItems = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/", label: "Anasayfa", icon: LayoutDashboard },
+  { to: "/customers", label: "Müşteriler", icon: Users },
   { to: "/settings", label: "Ayarlar", icon: Settings },
 ]
-
-function LogoutDialogContent({ onConfirm }: { onConfirm: () => void }) {
-  return (
-    <AlertDialogContent size="sm">
-      <AlertDialogHeader>
-        <AlertDialogTitle>Çıkış yapmak istiyor musunuz?</AlertDialogTitle>
-        <AlertDialogDescription>
-          Oturumunuz sonlandırılacak. Tekrar giriş yapmanız gerekecek.
-        </AlertDialogDescription>
-      </AlertDialogHeader>
-      <AlertDialogFooter>
-        <AlertDialogCancel>İptal</AlertDialogCancel>
-        <AlertDialogAction onClick={onConfirm}>Çıkış Yap</AlertDialogAction>
-      </AlertDialogFooter>
-    </AlertDialogContent>
-  )
-}
 
 interface SidebarProps {
   collapsed: boolean
@@ -55,8 +51,80 @@ interface SidebarProps {
   onMobileClose: () => void
 }
 
-function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
+function SidebarFooter({ collapsed }: { collapsed: boolean }) {
   const { user, logout } = useAuthStore()
+  const { theme, setTheme } = useTheme()
+  const [logoutOpen, setLogoutOpen] = useState(false)
+
+  const initials = user?.email?.slice(0, 2).toUpperCase() ?? "??"
+
+  const themeItems = [
+    { value: "light", label: "Açık Tema", icon: Sun },
+    { value: "dark", label: "Koyu Tema", icon: Moon },
+    { value: "system", label: "Sistem Teması", icon: Monitor },
+  ] as const
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          {collapsed ? (
+            <button
+              className="size-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary select-none hover:bg-primary/20 transition-colors mx-auto"
+              title={user?.email}
+            >
+              {initials}
+            </button>
+          ) : (
+            <button className="flex items-center gap-2 px-2 w-full py-2 rounded-md hover:bg-accent transition-colors group">
+              <div className="size-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary shrink-0 select-none">
+                {initials}
+              </div>
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <p className="text-sm font-medium leading-normal truncate">{user?.email}</p>
+              </div>
+              <ChevronUp className="size-3.5 text-muted-foreground shrink-0 group-data-[state=open]:rotate-180 transition-transform" />
+            </button>
+          )}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent side="top" align={collapsed ? "center" : "start"} sideOffset={6} className="w-52">
+          {themeItems.map(({ value, label, icon: Icon }) => (
+            <DropdownMenuItem key={value} onClick={() => setTheme(value)}>
+              <Icon className="size-4 mr-2 shrink-0" />
+              <span className="flex-1">{label}</span>
+              {theme === value && <Check className="size-3.5 ml-2 shrink-0" />}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+            onClick={() => setLogoutOpen(true)}
+          >
+            <LogOut className="size-4 mr-2" />
+            Çıkış Yap
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Çıkış yapmak istiyor musunuz?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Oturumunuz sonlandırılacak. Tekrar giriş yapmanız gerekecek.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogAction onClick={logout}>Çıkış Yap</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
+}
+
+function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const location = useLocation()
   const isActive = (path: string) => location.pathname === path
 
@@ -64,16 +132,12 @@ function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProp
     onMobileClose()
   }, [location.pathname, onMobileClose])
 
-  const initials = user?.email?.slice(0, 2).toUpperCase() ?? "??"
-
   return (
     <aside
       className={cn(
         "h-screen flex flex-col border-r bg-card z-40",
-        // Mobile: fixed overlay drawer
         "fixed inset-y-0 left-0 w-72 transition-transform duration-300 ease-in-out",
         mobileOpen ? "translate-x-0" : "-translate-x-full",
-        // Desktop: sticky, collapsible, always visible
         "lg:sticky lg:top-0 lg:translate-x-0 lg:transition-[width] lg:duration-300",
         collapsed ? "lg:w-16" : "lg:w-64",
       )}
@@ -85,19 +149,16 @@ function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProp
           collapsed ? "lg:justify-center" : "justify-between"
         )}
       >
-        {/* Mobile: always show logo */}
         <div className="flex items-center gap-2 lg:hidden">
           <img src={konuktanLogo} alt="konuktan" className="h-7 w-auto" />
           <span className="text-lg font-semibold tracking-tight select-none">Konuktan</span>
         </div>
-        {/* Desktop: hide when collapsed */}
         {!collapsed && (
           <div className="hidden lg:flex items-center gap-2">
             <img src={konuktanLogo} alt="konuktan" className="h-7 w-auto" />
             <span className="text-lg font-semibold tracking-tight select-none">Konuktan</span>
           </div>
         )}
-        {/* Desktop collapse toggle */}
         <Button
           variant="ghost"
           size="icon"
@@ -106,7 +167,6 @@ function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProp
         >
           {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
         </Button>
-        {/* Mobile close button */}
         <Button
           variant="ghost"
           size="icon"
@@ -138,52 +198,9 @@ function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProp
         ))}
       </nav>
 
-      {/* User / Logout */}
-      <div className={cn("border-t p-2 shrink-0", collapsed && "lg:flex lg:flex-col lg:items-center lg:gap-1")}>
-        {/* Collapsed desktop */}
-        <div className={cn("hidden", collapsed && "lg:flex lg:flex-col lg:items-center lg:gap-1")}>
-          <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary select-none">
-            {initials}
-          </div>
-          <ModeToggle className="size-8" />
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                title="Çıkış Yap"
-              >
-                <LogOut className="size-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <LogoutDialogContent onConfirm={logout} />
-          </AlertDialog>
-        </div>
-
-        {/* Expanded (mobile always, desktop when not collapsed) */}
-        <div className={cn("flex items-center gap-2 px-1", collapsed && "lg:hidden")}>
-          <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary shrink-0 select-none">
-            {initials}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate leading-none mb-0.5">{user?.email}</p>
-          </div>
-          <ModeToggle className="size-8 shrink-0" />
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                title="Çıkış Yap"
-              >
-                <LogOut className="size-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <LogoutDialogContent onConfirm={logout} />
-          </AlertDialog>
-        </div>
+      {/* Footer */}
+      <div className="border-t p-2 shrink-0">
+        <SidebarFooter collapsed={collapsed} />
       </div>
     </aside>
   )
@@ -198,7 +215,6 @@ export default function AppLayout() {
   return (
     <AuthProvider>
       <div className="min-h-screen flex">
-        {/* Mobile backdrop */}
         {mobileOpen && (
           <div
             className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
@@ -214,13 +230,12 @@ export default function AppLayout() {
         />
 
         <div className="flex-1 min-w-0 flex flex-col">
-          {/* Mobile top bar */}
           <header className="h-14 border-b bg-card flex items-center px-4 gap-3 lg:hidden sticky top-0 z-20 shrink-0">
             <Button variant="ghost" size="icon" className="size-8" onClick={() => setMobileOpen(true)}>
               <Menu className="size-4" />
             </Button>
             <div className="flex items-center gap-2">
-              <img src={konuktanLogo} alt="Werna" className="h-6 w-auto" />
+              <img src={konuktanLogo} alt="Konuktan" className="h-6 w-auto" />
               <span className="text-base font-semibold tracking-tight">Konuktan</span>
             </div>
           </header>

@@ -32,7 +32,7 @@ export default function AppIndex() {
   return (
     <div className="p-8 space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Anasayfa</h1>
         <p className="text-sm text-muted-foreground mt-1">Platforma genel bakış</p>
       </div>
 
