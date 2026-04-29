@@ -72,3 +72,19 @@ CREATE TABLE customers (
 CREATE INDEX idx_customers_user_id ON customers(user_id);
 CREATE INDEX idx_customers_status ON customers(status);
 CREATE INDEX idx_customers_email ON customers(email);
+
+CREATE TABLE processes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    stage VARCHAR(30) NOT NULL DEFAULT 'todo' CHECK (stage IN ('todo', 'in_progress', 'done', 'failed')),
+    position INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_processes_user_id ON processes(user_id);
+CREATE INDEX idx_processes_customer_id ON processes(customer_id);
+CREATE INDEX idx_processes_stage ON processes(stage);

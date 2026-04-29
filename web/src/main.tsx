@@ -11,6 +11,7 @@ import ResetPassword from "@/pages/auth/reset-password"
 import AppLayout from "@/layouts/app-layout"
 import AppIndex from "@/pages/app/index"
 import Customers from "@/pages/app/customers"
+import Processes from "@/pages/app/processes"
 import Settings from "@/pages/app/settings"
 import { ThemeProvider } from './providers/theme-provider'
 
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
             {
                 path: "customers",
                 element: <Customers />
+            },
+            {
+                path: "processes",
+                element: <Processes />
             },
             {
                 path: "settings",

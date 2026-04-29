@@ -24,6 +24,7 @@ import {
 import {
   LayoutDashboard,
   Users,
+  KanbanSquare,
   Settings,
   LogOut,
   ChevronLeft,
@@ -41,6 +42,7 @@ import konuktanLogo from "@/assets/konuktan_logo.svg"
 const navItems = [
   { to: "/", label: "Anasayfa", icon: LayoutDashboard },
   { to: "/customers", label: "Müşteriler", icon: Users },
+  { to: "/processes", label: "Süreçler", icon: KanbanSquare },
   { to: "/settings", label: "Ayarlar", icon: Settings },
 ]
 
