@@ -1,61 +1,65 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useCallback } from "react"
 import { Outlet, Link, useLocation } from "react-router"
 import { useAuthStore } from "@/store/auth-store"
 import { useTheme } from "@/providers/theme-provider"
 import AuthProvider from "@/providers/auth-provider"
 import { Button } from "@/components/ui/button"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-  LayoutDashboard,
-  Users,
-  KanbanSquare,
-  Activity,
-  Settings,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-  ChevronUp,
-  Menu,
-  Sun,
-  Moon,
-  Monitor,
-  Check,
+  Sheet, SheetContent, SheetTrigger,
+} from "@/components/ui/sheet"
+import {
+  LayoutDashboard, Users, KanbanSquare, Settings,
+  LogOut, Menu, Sun, Moon, Monitor, Check,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import konuktanLogo from "@/assets/konuktan_logo.svg"
 
 const navItems = [
-  { to: "/", label: "Anasayfa", icon: LayoutDashboard },
-  { to: "/customers", label: "Müşteriler", icon: Users },
-  { to: "/processes", label: "Süreçler", icon: KanbanSquare },
-  { to: "/activities", label: "Aktiviteler", icon: Activity },
-  { to: "/settings", label: "Ayarlar", icon: Settings },
+  { to: "/",          label: "Anasayfa",   icon: LayoutDashboard, exact: true },
+  { to: "/customers", label: "Müşteriler", icon: Users,            exact: false },
+  { to: "/processes", label: "Süreçler",   icon: KanbanSquare,     exact: false },
 ]
 
-interface SidebarProps {
-  collapsed: boolean
-  onToggle: () => void
-  mobileOpen: boolean
-  onMobileClose: () => void
+function NavLinks({ onClick }: { onClick?: () => void }) {
+  const location = useLocation()
+
+  function isActive(to: string, exact: boolean) {
+    if (exact) return location.pathname === to
+    return location.pathname === to || location.pathname.startsWith(to + "/")
+  }
+
+  return (
+    <>
+      {navItems.map(({ to, label, icon: Icon, exact }) => (
+        <Link
+          key={to}
+          to={to}
+          onClick={onClick}
+          className={cn(
+            "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+            isActive(to, exact)
+              ? "bg-accent text-foreground"
+              : "text-muted-foreground hover:text-foreground hover:bg-accent/60"
+          )}
+        >
+          <Icon className="size-4 shrink-0" />
+          {label}
+        </Link>
+      ))}
+    </>
+  )
 }
 
-function SidebarFooter({ collapsed }: { collapsed: boolean }) {
+function UserMenu() {
   const { user, logout } = useAuthStore()
   const { theme, setTheme } = useTheme()
   const [logoutOpen, setLogoutOpen] = useState(false)
@@ -63,8 +67,8 @@ function SidebarFooter({ collapsed }: { collapsed: boolean }) {
   const initials = user?.email?.slice(0, 2).toUpperCase() ?? "??"
 
   const themeItems = [
-    { value: "light", label: "Açık Tema", icon: Sun },
-    { value: "dark", label: "Koyu Tema", icon: Moon },
+    { value: "light",  label: "Açık Tema",    icon: Sun },
+    { value: "dark",   label: "Koyu Tema",    icon: Moon },
     { value: "system", label: "Sistem Teması", icon: Monitor },
   ] as const
 
@@ -72,26 +76,27 @@ function SidebarFooter({ collapsed }: { collapsed: boolean }) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          {collapsed ? (
-            <button
-              className="size-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary select-none hover:bg-primary/20 transition-colors mx-auto"
-              title={user?.email}
-            >
+          <button className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-accent transition-colors group">
+            <div className="size-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary select-none">
               {initials}
-            </button>
-          ) : (
-            <button className="flex items-center gap-2 px-2 w-full py-2 rounded-md hover:bg-accent transition-colors group">
-              <div className="size-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary shrink-0 select-none">
-                {initials}
-              </div>
-              <div className="flex-1 min-w-0 overflow-hidden">
-                <p className="text-sm font-medium leading-normal truncate">{user?.email}</p>
-              </div>
-              <ChevronUp className="size-3.5 text-muted-foreground shrink-0 group-data-[state=open]:rotate-180 transition-transform" />
-            </button>
-          )}
+            </div>
+            <span className="text-sm text-muted-foreground hidden sm:block max-w-48 truncate">
+              {user?.email}
+            </span>
+          </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent side="top" align={collapsed ? "center" : "start"} sideOffset={6} className="w-52">
+        <DropdownMenuContent align="end" sideOffset={8} className="w-52">
+          <div className="px-2 py-1.5">
+            <p className="text-xs font-medium truncate">{user?.email}</p>
+          </div>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
+              <Settings className="size-4" />
+              Ayarlar
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           {themeItems.map(({ value, label, icon: Icon }) => (
             <DropdownMenuItem key={value} onClick={() => setTheme(value)}>
               <Icon className="size-4 mr-2 shrink-0" />
@@ -128,126 +133,61 @@ function SidebarFooter({ collapsed }: { collapsed: boolean }) {
   )
 }
 
-function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
-  const location = useLocation()
-  const isActive = (path: string) => location.pathname === path
-
-  useEffect(() => {
-    onMobileClose()
-  }, [location.pathname, onMobileClose])
+function MobileMenu() {
+  const [open, setOpen] = useState(false)
+  const close = useCallback(() => setOpen(false), [])
 
   return (
-    <aside
-      className={cn(
-        "h-screen flex flex-col border-r bg-card z-40",
-        "fixed inset-y-0 left-0 w-72 transition-transform duration-300 ease-in-out",
-        mobileOpen ? "translate-x-0" : "-translate-x-full",
-        "lg:sticky lg:top-0 lg:translate-x-0 lg:transition-[width] lg:duration-300",
-        collapsed ? "lg:w-16" : "lg:w-64",
-      )}
-    >
-      {/* Header */}
-      <div
-        className={cn(
-          "flex items-center h-16 border-b px-3 shrink-0",
-          collapsed ? "lg:justify-center" : "justify-between"
-        )}
-      >
-        <div className="flex items-center gap-2 lg:hidden">
-          <img src={konuktanLogo} alt="konuktan" className="h-7 w-auto" />
-          <span className="text-lg font-semibold tracking-tight select-none">Konuktan</span>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="icon" className="size-9 md:hidden">
+          <Menu className="size-4" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-64 p-4 flex flex-col gap-1">
+        <div className="flex items-center gap-2 px-2 py-3 mb-2 border-b">
+          <img src={konuktanLogo} alt="Konuktan" className="h-6 w-auto" />
+          <span className="font-semibold tracking-tight">Konuktan</span>
         </div>
-        {!collapsed && (
-          <div className="hidden lg:flex items-center gap-2">
-            <img src={konuktanLogo} alt="konuktan" className="h-7 w-auto" />
-            <span className="text-lg font-semibold tracking-tight select-none">Konuktan</span>
-          </div>
-        )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-8 shrink-0 hidden lg:flex"
-          onClick={onToggle}
-        >
-          {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-8 shrink-0 lg:hidden"
-          onClick={onMobileClose}
-        >
-          <ChevronLeft className="size-4" />
-        </Button>
-      </div>
-
-      {/* Nav */}
-      <nav className="flex-1 p-2 space-y-0.5 overflow-hidden">
-        {navItems.map(({ to, label, icon: Icon }) => (
-          <Button
-            key={to}
-            asChild
-            variant={isActive(to) ? "secondary" : "ghost"}
-            className={cn(
-              "w-full h-10",
-              collapsed ? "lg:justify-center lg:px-0 justify-start gap-3 px-3" : "justify-start gap-3 px-3"
-            )}
-            title={collapsed ? label : undefined}
-          >
-            <Link to={to}>
-              <Icon className="size-4 shrink-0" />
-              <span className={cn("truncate", collapsed && "lg:hidden")}>{label}</span>
-            </Link>
-          </Button>
-        ))}
-      </nav>
-
-      {/* Footer */}
-      <div className="border-t p-2 shrink-0">
-        <SidebarFooter collapsed={collapsed} />
-      </div>
-    </aside>
+        <NavLinks onClick={close} />
+      </SheetContent>
+    </Sheet>
   )
 }
 
 export default function AppLayout() {
-  const [collapsed, setCollapsed] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
-
-  const handleMobileClose = useCallback(() => setMobileOpen(false), [])
-
   return (
     <AuthProvider>
-      <div className="min-h-screen flex">
-        {mobileOpen && (
-          <div
-            className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
-            onClick={handleMobileClose}
-          />
-        )}
+      <div className="min-h-screen flex flex-col">
+        {/* Top Navbar */}
+        <header className="sticky top-0 z-40 h-14 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+          <div className="h-full px-4 flex items-center gap-4">
+            {/* Mobile hamburger */}
+            <MobileMenu />
 
-        <Sidebar
-          collapsed={collapsed}
-          onToggle={() => setCollapsed((c) => !c)}
-          mobileOpen={mobileOpen}
-          onMobileClose={handleMobileClose}
-        />
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2 shrink-0">
+              <img src={konuktanLogo} alt="Konuktan" className="h-7 w-auto" />
+              <span className="font-semibold tracking-tight hidden sm:block">Konuktan</span>
+            </Link>
 
-        <div className="flex-1 min-w-0 flex flex-col">
-          <header className="h-14 border-b bg-card flex items-center px-4 gap-3 lg:hidden sticky top-0 z-20 shrink-0">
-            <Button variant="ghost" size="icon" className="size-8" onClick={() => setMobileOpen(true)}>
-              <Menu className="size-4" />
-            </Button>
-            <div className="flex items-center gap-2">
-              <img src={konuktanLogo} alt="Konuktan" className="h-6 w-auto" />
-              <span className="text-base font-semibold tracking-tight">Konuktan</span>
-            </div>
-          </header>
+            {/* Desktop nav */}
+            <nav className="hidden md:flex items-center gap-1 flex-1">
+              <NavLinks />
+            </nav>
 
-          <main className="flex-1 bg-background overflow-auto">
-            <Outlet />
-          </main>
-        </div>
+            {/* Spacer on mobile */}
+            <div className="flex-1 md:hidden" />
+
+            {/* User menu */}
+            <UserMenu />
+          </div>
+        </header>
+
+        {/* Page content */}
+        <main className="flex-1 bg-background overflow-auto">
+          <Outlet />
+        </main>
       </div>
     </AuthProvider>
   )

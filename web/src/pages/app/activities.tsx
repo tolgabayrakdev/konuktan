@@ -79,13 +79,6 @@ const EMPTY_FORM = {
   ...nowParts(),
 }
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleString("tr-TR", {
-    day: "2-digit", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
-  })
-}
-
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString("tr-TR", {
     hour: "2-digit", minute: "2-digit",

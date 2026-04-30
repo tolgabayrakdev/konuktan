@@ -21,7 +21,12 @@ export default function SessionExpiredDialog() {
   const handleExtend = async () => {
     setLoading("extend")
     await extendSession()
-    setLoading(null)
+    const { isAuthenticated } = useAuthStore.getState()
+    if (isAuthenticated) {
+      window.location.reload()
+    } else {
+      setLoading(null)
+    }
   }
 
   const handleLogout = async () => {
