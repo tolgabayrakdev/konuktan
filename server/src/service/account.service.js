@@ -12,7 +12,7 @@ export class AccountService {
   async getProfile(userId) {
     const user = await this.userRepo.findById(userId);
     if (!user) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError('Kullanıcı bulunamadı');
     }
     return user;
   }
@@ -20,7 +20,7 @@ export class AccountService {
   async updateProfile(userId, data) {
     const user = await this.userRepo.findById(userId);
     if (!user) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError('Kullanıcı bulunamadı');
     }
     return this.userRepo.updateById(userId, data);
   }
@@ -28,12 +28,12 @@ export class AccountService {
   async updatePassword(userId, { currentPassword, newPassword }) {
     const user = await this.userRepo.findById(userId);
     if (!user) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError('Kullanıcı bulunamadı');
     }
 
     const isValid = await bcrypt.compare(currentPassword, user.password);
     if (!isValid) {
-      throw new ValidationError('Current password is incorrect');
+      throw new ValidationError('Mevcut şifre hatalı');
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
@@ -43,7 +43,7 @@ export class AccountService {
   async deleteAccount(userId) {
     const deleted = await this.userRepo.deleteById(userId);
     if (!deleted) {
-      throw new NotFoundError('User not found');
+      throw new NotFoundError('Kullanıcı bulunamadı');
     }
     return deleted;
   }

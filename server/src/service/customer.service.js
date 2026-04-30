@@ -31,7 +31,7 @@ export class CustomerService {
 
   async getOne(id, userId) {
     const row = await this.repo.findById(id, userId);
-    if (!row) throw new NotFoundError('Customer not found');
+    if (!row) throw new NotFoundError('Müşteri bulunamadı');
     return toResponse(row);
   }
 
@@ -42,12 +42,12 @@ export class CustomerService {
 
   async update(id, userId, body) {
     const row = await this.repo.update(id, userId, body);
-    if (!row) throw new NotFoundError('Customer not found');
+    if (!row) throw new NotFoundError('Müşteri bulunamadı');
     return toResponse(row);
   }
 
   async delete(id, userId) {
     const row = await this.repo.delete(id, userId);
-    if (!row) throw new NotFoundError('Customer not found');
+    if (!row) throw new NotFoundError('Müşteri bulunamadı');
   }
 }

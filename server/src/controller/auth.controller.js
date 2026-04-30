@@ -13,7 +13,7 @@ export class AuthController {
       res.status(201).json({
         success: true,
         data: result,
-        message: 'Registration successful. Please verify your email.',
+        message: 'Kayıt başarılı. Lütfen e-postanızı doğrulayın.',
       });
     } catch (err) {
       next(err);
@@ -28,7 +28,7 @@ export class AuthController {
       res.status(200).json({
         success: true,
         data: result,
-        message: 'Email verified successfully. You can now login.',
+        message: 'E-posta başarıyla doğrulandı. Artık giriş yapabilirsiniz.',
       });
     } catch (err) {
       next(err);
@@ -77,7 +77,7 @@ export class AuthController {
 
       res.status(200).json({
         success: true,
-        data: { message: 'Tokens refreshed' },
+        data: { message: 'Oturum yenilendi' },
       });
     } catch (err) {
       res.clearCookie('accessToken', getAccessTokenCookieOptions());
@@ -91,7 +91,7 @@ export class AuthController {
       await this.authService.forgotPassword(req.body.email);
       res.status(200).json({
         success: true,
-        data: { message: 'If this email exists, a reset link has been sent' },
+        data: { message: 'Bu e-posta adresi kayıtlıysa sıfırlama bağlantısı gönderildi' },
       });
     } catch (err) {
       next(err);
@@ -104,7 +104,7 @@ export class AuthController {
       await this.authService.resetPassword(token, newPassword);
       res.status(200).json({
         success: true,
-        data: { message: 'Password reset successful' },
+        data: { message: 'Şifre sıfırlandı' },
       });
     } catch (err) {
       next(err);
@@ -121,7 +121,7 @@ export class AuthController {
 
       res.status(200).json({
         success: true,
-        data: { message: 'Logged out successfully' },
+        data: { message: 'Çıkış yapıldı' },
       });
     } catch (err) {
       next(err);

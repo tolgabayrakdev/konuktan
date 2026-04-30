@@ -26,7 +26,7 @@ export class AccountController {
   updatePassword = async (req, res, next) => {
     try {
       const result = await this.accountService.updatePassword(req.user.id, req.body);
-      res.status(200).json({ success: true, data: { message: 'Password updated' } });
+      res.status(200).json({ success: true, data: { message: 'Şifre güncellendi' } });
     } catch (err) {
       next(err);
     }
@@ -35,7 +35,7 @@ export class AccountController {
   deleteAccount = async (req, res, next) => {
     try {
       await this.accountService.deleteAccount(req.user.id);
-      res.status(200).json({ success: true, data: { message: 'Account deleted' } });
+      res.status(200).json({ success: true, data: { message: 'Hesap silindi' } });
     } catch (err) {
       next(err);
     }

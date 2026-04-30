@@ -5,7 +5,7 @@ export const generalLimiter = rateLimit({
   max: 100,
   message: {
     success: false,
-    message: 'Too many requests, please try again later.',
+    message: 'Çok fazla istek gönderildi, lütfen daha sonra tekrar deneyin.',
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -16,7 +16,7 @@ export const authLimiter = rateLimit({
   max: 10,
   message: {
     success: false,
-    message: 'Too many auth attempts, please try again later.',
+    message: 'Çok fazla giriş denemesi, lütfen daha sonra tekrar deneyin.',
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -27,7 +27,7 @@ export const accountLimiter = rateLimit({
   max: 50,
   message: {
     success: false,
-    message: 'Too many requests, please try again later.',
+    message: 'Çok fazla istek gönderildi, lütfen daha sonra tekrar deneyin.',
   },
   standardHeaders: true,
   legacyHeaders: false,

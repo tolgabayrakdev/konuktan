@@ -36,7 +36,7 @@ export class ProcessController {
   delete = async (req, res, next) => {
     try {
       await this.service.delete(req.params.id, req.user.id);
-      res.status(200).json({ success: true, data: { message: 'Process deleted' } });
+      res.status(200).json({ success: true, data: { message: 'Süreç silindi' } });
     } catch (err) {
       next(err);
     }

@@ -45,13 +45,13 @@ export class ProcessService {
       data.position = maxPos + 1;
     }
     const row = await this.repo.update(id, userId, data);
-    if (!row) throw new NotFoundError('Process not found');
+    if (!row) throw new NotFoundError('Süreç bulunamadı');
     const full = await this.repo.findById(row.id, userId);
     return toResponse(full);
   }
 
   async delete(id, userId) {
     const row = await this.repo.delete(id, userId);
-    if (!row) throw new NotFoundError('Process not found');
+    if (!row) throw new NotFoundError('Süreç bulunamadı');
   }
 }

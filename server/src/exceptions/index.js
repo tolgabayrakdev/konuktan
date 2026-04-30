@@ -7,31 +7,31 @@ export class AppError extends Error {
 }
 
 export class UnauthorizedError extends AppError {
-  constructor(message = 'Unauthorized') {
+  constructor(message = 'Yetkisiz erişim') {
     super(message, 401);
   }
 }
 
 export class ForbiddenError extends AppError {
-  constructor(message = 'Forbidden') {
+  constructor(message = 'Erişim yasak') {
     super(message, 403);
   }
 }
 
 export class NotFoundError extends AppError {
-  constructor(message = 'Resource not found') {
+  constructor(message = 'Kaynak bulunamadı') {
     super(message, 404);
   }
 }
 
 export class ConflictError extends AppError {
-  constructor(message = 'Conflict') {
+  constructor(message = 'Çakışma') {
     super(message, 409);
   }
 }
 
 export class ValidationError extends AppError {
-  constructor(message = 'Validation error') {
+  constructor(message = 'Doğrulama hatası') {
     super(message, 400);
   }
 }
