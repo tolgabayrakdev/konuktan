@@ -74,6 +74,13 @@ const EMPTY_FORM = {
   notes: "",
 }
 
+function formatPhone(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 11)
+  if (digits.length <= 4) return digits
+  if (digits.length <= 7) return `${digits.slice(0, 4)} ${digits.slice(4)}`
+  return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`
+}
+
 function exportCSV(customers: Customer[]) {
   const headers = ["Ad", "Soyad", "E-posta", "Telefon", "Şirket", "Şehir", "Durum", "Kayıt Tarihi"]
   const rows = customers.map((c) => [
@@ -159,6 +166,7 @@ export default function Customers() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
+  const [phoneError, setPhoneError] = useState(false)
 
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -208,6 +216,7 @@ export default function Customers() {
   const openAdd = () => {
     setEditingId(null)
     setForm(EMPTY_FORM)
+    setPhoneError(false)
     setSheetOpen(true)
   }
 
@@ -223,6 +232,7 @@ export default function Customers() {
       status: c.status,
       notes: c.notes ?? "",
     })
+    setPhoneError(false)
     setSheetOpen(true)
   }
 
@@ -231,6 +241,15 @@ export default function Customers() {
       toast.error("Ad ve soyad zorunludur")
       return
     }
+    if (form.phone) {
+      const digits = form.phone.replace(/\D/g, "")
+      if (digits.length !== 11) {
+        setPhoneError(true)
+        toast.error("Telefon numarası 11 haneli olmalıdır (örn: 0532 123 3212)")
+        return
+      }
+    }
+    setPhoneError(false)
     setSaving(true)
     try {
       if (editingId) {
@@ -443,7 +462,20 @@ export default function Customers() {
 
             <div className="space-y-1.5">
               <Label>Telefon</Label>
-              <Input value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} placeholder="0500 000 0000" />
+              <Input
+                value={form.phone}
+                onChange={(e) => {
+                  const formatted = formatPhone(e.target.value)
+                  setPhoneError(false)
+                  setForm((p) => ({ ...p, phone: formatted }))
+                }}
+                placeholder="0532 123 3212"
+                className={cn(phoneError && "border-destructive focus-visible:ring-destructive")}
+                inputMode="numeric"
+              />
+              {phoneError && (
+                <p className="text-xs text-destructive">11 haneli olmalıdır (örn: 0532 123 3212)</p>
+              )}
             </div>
 
             <div className="space-y-1.5">
