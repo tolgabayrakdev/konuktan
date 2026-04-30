@@ -30,9 +30,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Plus, Search, Download, FileText, Pencil, Trash2, Users, ChevronDown, Loader2 } from "lucide-react"
+import { Plus, Search, Download, FileText, Pencil, Trash2, Users, ChevronDown, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { apiClient, ApiClientError } from "@/lib/api-client"
+import { useNavigate } from "react-router"
 
 type Status = "active" | "inactive" | "lead"
 
@@ -156,6 +157,7 @@ function exportPDF(customers: Customer[]) {
 }
 
 export default function Customers() {
+  const navigate = useNavigate()
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
@@ -171,6 +173,10 @@ export default function Customers() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
 
+  const PAGE_SIZE = 20
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+
   // Debounce search
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 350)
@@ -183,10 +189,11 @@ export default function Customers() {
     const load = async () => {
       setLoading(true)
       try {
-        const params = new URLSearchParams({ limit: "100" })
+        const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) })
         if (debouncedSearch) params.set("search", debouncedSearch)
-        const res = await apiClient.get<{ success: boolean; data: Customer[] }>(`/api/customers?${params}`)
-        if (!cancelled) setCustomers(res.data)
+        if (statusFilter !== "all") params.set("status", statusFilter)
+        const res = await apiClient.get<{ success: boolean; data: Customer[]; pagination: { total: number; totalPages: number } }>(`/api/customers?${params}`)
+        if (!cancelled) { setCustomers(res.data); setTotal(res.pagination.total) }
       } catch (err) {
         if (!cancelled) {
           const msg = err instanceof ApiClientError ? err.data.message : undefined
@@ -199,19 +206,14 @@ export default function Customers() {
 
     load()
     return () => { cancelled = true }
-  }, [debouncedSearch])
+  }, [debouncedSearch, statusFilter, page])
 
-  const filtered = useMemo(() =>
-    statusFilter === "all" ? customers : customers.filter((c) => c.status === statusFilter),
-    [customers, statusFilter]
-  )
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearch, statusFilter])
 
-  const counts = useMemo(() => ({
-    all: customers.length,
-    active: customers.filter((c) => c.status === "active").length,
-    lead: customers.filter((c) => c.status === "lead").length,
-    inactive: customers.filter((c) => c.status === "inactive").length,
-  }), [customers])
+  const filtered = customers
+  const totalPages = Math.ceil(total / PAGE_SIZE)
 
   const openAdd = () => {
     setEditingId(null)
@@ -259,6 +261,7 @@ export default function Customers() {
       } else {
         const res = await apiClient.post<{ success: boolean; data: Customer }>("/api/customers", form)
         setCustomers((prev) => [res.data, ...prev])
+        setTotal(t => t + 1)
         toast.success("Müşteri eklendi")
       }
       setSheetOpen(false)
@@ -276,6 +279,7 @@ export default function Customers() {
     try {
       await apiClient.delete(`/api/customers/${deleteId}`)
       setCustomers((prev) => prev.filter((c) => c.id !== deleteId))
+      setTotal(t => t - 1)
       toast.success("Müşteri silindi")
       setDeleteId(null)
     } catch (err) {
@@ -293,13 +297,13 @@ export default function Customers() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Müşteriler</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {loading ? "Yükleniyor..." : `${customers.length} müşteri kayıtlı`}
+            {loading ? "Yükleniyor..." : `${total} müşteri kayıtlı`}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1.5" disabled={loading || customers.length === 0}>
+              <Button variant="outline" size="sm" className="gap-1.5" disabled={loading || total === 0}>
                 <Download className="size-4" />
                 Dışa Aktar
                 <ChevronDown className="size-3.5 opacity-60" />
@@ -347,9 +351,6 @@ export default function Customers() {
               )}
             >
               {label}
-              <span className={cn("ml-1.5 text-xs", statusFilter === value ? "text-muted-foreground" : "text-muted-foreground/60")}>
-                {counts[value]}
-              </span>
             </button>
           ))}
         </div>
@@ -388,7 +389,11 @@ export default function Customers() {
                 </tr>
               ) : (
                 filtered.map((c) => (
-                  <tr key={c.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                  <tr
+                    key={c.id}
+                    className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/customers/${c.id}`)}
+                  >
                     <td className="px-4 py-3">
                       <div>
                         <p className="font-medium">{c.firstName} {c.lastName}</p>
@@ -405,7 +410,7 @@ export default function Customers() {
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                         <Button variant="ghost" size="icon" className="size-8" onClick={() => openEdit(c)}>
                           <Pencil className="size-3.5" />
                         </Button>
@@ -427,8 +432,35 @@ export default function Customers() {
         </div>
 
         {!loading && filtered.length > 0 && (
-          <div className="px-4 py-3 border-t bg-muted/20 text-xs text-muted-foreground">
-            {filtered.length} sonuç gösteriliyor{filtered.length !== customers.length && ` (toplam ${customers.length})`}
+          <div className="px-4 py-3 border-t bg-muted/20 flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">
+              {total} kayıt içinden {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} arası gösteriliyor
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline" size="sm" className="h-7 w-7 p-0"
+                disabled={page <= 1}
+                onClick={() => setPage(p => p - 1)}
+              >
+                <ChevronLeft className="size-3.5" />
+              </Button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <Button
+                  key={p} variant={p === page ? "default" : "outline"}
+                  size="sm" className="h-7 w-7 p-0"
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </Button>
+              ))}
+              <Button
+                variant="outline" size="sm" className="h-7 w-7 p-0"
+                disabled={page >= totalPages}
+                onClick={() => setPage(p => p + 1)}
+              >
+                <ChevronRight className="size-3.5" />
+              </Button>
+            </div>
           </div>
         )}
       </div>

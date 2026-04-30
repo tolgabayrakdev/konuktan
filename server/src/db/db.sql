@@ -88,3 +88,19 @@ CREATE TABLE processes (
 CREATE INDEX idx_processes_user_id ON processes(user_id);
 CREATE INDEX idx_processes_customer_id ON processes(customer_id);
 CREATE INDEX idx_processes_stage ON processes(stage);
+
+CREATE TABLE activities (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+    type VARCHAR(20) NOT NULL CHECK (type IN ('call', 'email', 'meeting', 'note', 'offer')),
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    happened_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_activities_user_id ON activities(user_id);
+CREATE INDEX idx_activities_customer_id ON activities(customer_id);
+CREATE INDEX idx_activities_happened_at ON activities(happened_at DESC);

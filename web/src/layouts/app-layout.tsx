@@ -25,6 +25,7 @@ import {
   LayoutDashboard,
   Users,
   KanbanSquare,
+  Activity,
   Settings,
   LogOut,
   ChevronLeft,
@@ -43,6 +44,7 @@ const navItems = [
   { to: "/", label: "Anasayfa", icon: LayoutDashboard },
   { to: "/customers", label: "Müşteriler", icon: Users },
   { to: "/processes", label: "Süreçler", icon: KanbanSquare },
+  { to: "/activities", label: "Aktiviteler", icon: Activity },
   { to: "/settings", label: "Ayarlar", icon: Settings },
 ]
 

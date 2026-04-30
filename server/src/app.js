@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes.js';
 import accountRoutes from './routes/account.routes.js';
 import customerRoutes from './routes/customer.routes.js';
 import processRoutes from './routes/process.routes.js';
+import activityRoutes from './routes/activity.routes.js';
 import './events/email.events.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { generalLimiter } from './middleware/rateLimiter.js';
@@ -34,9 +35,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/account', accountRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/processes', processRoutes);
+app.use('/api/activities', activityRoutes);
 
 app.use((_req, res) => {
-  res.status(404).json({ success: false, message: 'Route not found' });
+  res.status(404).json({ success: false, message: 'Rota bulunamadı' });
 });
 
 app.use(errorHandler);

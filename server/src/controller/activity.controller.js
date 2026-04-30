@@ -1,15 +1,24 @@
-import { ProcessService } from '../service/process.service.js';
+import { ActivityService } from '../service/activity.service.js';
 
-export class ProcessController {
+export class ActivityController {
   constructor() {
-    this.service = new ProcessService();
+    this.service = new ActivityService();
   }
 
   list = async (req, res, next) => {
     try {
-      const { customerId, search } = req.query;
-      const data = await this.service.list({ userId: req.user.id, customerId, search });
-      res.status(200).json({ success: true, data });
+      const { customerId, type, startDate, endDate, page = 1, limit = 30 } = req.query;
+      const offset = (Number(page) - 1) * Number(limit);
+      const result = await this.service.list({
+        userId: req.user.id,
+        customerId,
+        type,
+        startDate,
+        endDate,
+        limit: Number(limit),
+        offset,
+      });
+      res.status(200).json({ success: true, ...result });
     } catch (err) {
       next(err);
     }
@@ -36,7 +45,7 @@ export class ProcessController {
   delete = async (req, res, next) => {
     try {
       await this.service.delete(req.params.id, req.user.id);
-      res.status(200).json({ success: true, data: { message: 'Süreç silindi' } });
+      res.status(200).json({ success: true, data: { message: 'Aktivite silindi' } });
     } catch (err) {
       next(err);
     }

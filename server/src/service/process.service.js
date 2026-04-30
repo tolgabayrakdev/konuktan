@@ -18,8 +18,8 @@ export class ProcessService {
     this.repo = new ProcessRepository();
   }
 
-  async list({ userId, customerId }) {
-    const rows = await this.repo.findAll({ userId, customerId });
+  async list({ userId, customerId, search }) {
+    const rows = await this.repo.findAll({ userId, customerId, search });
     return rows.map(toResponse);
   }
 

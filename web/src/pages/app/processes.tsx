@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Plus, Pencil, Trash2, Loader2, KanbanSquare } from "lucide-react"
+import { Plus, Pencil, Trash2, Loader2, KanbanSquare, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { apiClient, ApiClientError } from "@/lib/api-client"
 
@@ -67,6 +67,8 @@ export default function Processes() {
   const [processes, setProcesses] = useState<Process[]>([])
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
 
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -80,14 +82,22 @@ export default function Processes() {
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dragOverStage, setDragOverStage] = useState<Stage | null>(null)
 
+  // Debounce search
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 350)
+    return () => clearTimeout(t)
+  }, [search])
+
   // Load data
   useEffect(() => {
     let cancelled = false
     const load = async () => {
       setLoading(true)
       try {
+        const params = new URLSearchParams()
+        if (debouncedSearch) params.set("search", debouncedSearch)
         const [procRes, custRes] = await Promise.all([
-          apiClient.get<{ success: boolean; data: Process[] }>("/api/processes"),
+          apiClient.get<{ success: boolean; data: Process[] }>(`/api/processes?${params}`),
           apiClient.get<{ success: boolean; data: Customer[] }>("/api/customers?limit=100"),
         ])
         if (!cancelled) {
@@ -105,7 +115,7 @@ export default function Processes() {
     }
     load()
     return () => { cancelled = true }
-  }, [])
+  }, [debouncedSearch])
 
   const byStage = (stage: Stage) =>
     processes.filter((p) => p.stage === stage).sort((a, b) => a.position - b.position)
@@ -212,7 +222,7 @@ export default function Processes() {
   return (
     <div className="p-8 space-y-6 h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Süreçler</h1>
           <p className="text-sm text-muted-foreground mt-1">{processes.length} süreç takip ediliyor</p>
@@ -221,6 +231,17 @@ export default function Processes() {
           <Plus className="size-4" />
           Yeni Süreç
         </Button>
+      </div>
+
+      {/* Search */}
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Input
+          placeholder="Süreç veya müşteri ara..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9 h-9"
+        />
       </div>
 
       {/* Empty state */}
@@ -265,7 +286,7 @@ export default function Processes() {
 
               {/* Cards area */}
               <div className={cn(
-                "flex-1 rounded-b-xl border p-2 space-y-2 min-h-32 transition-colors",
+                "flex-1 rounded-b-xl border p-2 space-y-2 min-h-32 max-h-[calc(100vh-280px)] overflow-y-auto transition-colors",
                 cfg.border, cfg.bg,
                 isOver && "ring-2 ring-primary/40 ring-inset"
               )}>

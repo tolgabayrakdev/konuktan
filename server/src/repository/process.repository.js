@@ -1,7 +1,7 @@
 import { query } from '../config/db.js';
 
 export class ProcessRepository {
-  async findAll({ userId, customerId }) {
+  async findAll({ userId, customerId, search }) {
     const conditions = ['p.user_id = $1'];
     const values = [userId];
     let idx = 2;
@@ -9,6 +9,17 @@ export class ProcessRepository {
     if (customerId) {
       conditions.push(`p.customer_id = $${idx++}`);
       values.push(customerId);
+    }
+
+    if (search) {
+      conditions.push(`(
+        p.title ILIKE $${idx} OR
+        p.description ILIKE $${idx} OR
+        c.first_name ILIKE $${idx} OR
+        c.last_name ILIKE $${idx}
+      )`);
+      values.push(`%${search}%`);
+      idx++;
     }
 
     const result = await query(
