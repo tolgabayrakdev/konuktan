@@ -1,7 +1,62 @@
 import { query } from '../config/db.js';
 
 export class ProcessRepository {
-  async findAll({ userId, customerId, search }) {
+  async findAll({ userId, customerId, stage, search, page = 1, limit = 20 }) {
+    const conditions = ['p.user_id = $1'];
+    const values = [userId];
+    let idx = 2;
+
+    if (customerId) {
+      conditions.push(`p.customer_id = $${idx++}`);
+      values.push(customerId);
+    }
+
+    if (stage) {
+      conditions.push(`p.stage = $${idx++}`);
+      values.push(stage);
+    }
+
+    if (search) {
+      conditions.push(`(
+        p.title ILIKE $${idx} OR
+        p.description ILIKE $${idx} OR
+        c.first_name ILIKE $${idx} OR
+        c.last_name ILIKE $${idx}
+      )`);
+      values.push(`%${search}%`);
+      idx++;
+    }
+
+    const where = `WHERE ${conditions.join(' AND ')}`;
+
+    const countResult = await query(
+      `SELECT COUNT(*) FROM processes p
+       JOIN customers c ON p.customer_id = c.id
+       ${where}`,
+      values
+    );
+    const total = parseInt(countResult.rows[0].count, 10);
+
+    const offset = (page - 1) * limit;
+    values.push(limit, offset);
+
+    const result = await query(
+      `SELECT
+         p.id, p.user_id, p.customer_id, p.title, p.description,
+         p.stage, p.position, p.created_at, p.updated_at,
+         c.first_name, c.last_name
+       FROM processes p
+       JOIN customers c ON p.customer_id = c.id
+       ${where}
+       ORDER BY p.stage, p.position ASC, p.created_at ASC
+       LIMIT $${idx} OFFSET $${idx + 1}`,
+      values
+    );
+
+    return { rows: result.rows, total };
+  }
+
+  async findAllNoPagination({ userId, customerId, search }) {
     const conditions = ['p.user_id = $1'];
     const values = [userId];
     let idx = 2;

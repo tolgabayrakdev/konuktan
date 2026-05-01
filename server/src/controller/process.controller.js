@@ -7,9 +7,18 @@ export class ProcessController {
 
   list = async (req, res, next) => {
     try {
-      const { customerId, search } = req.query;
-      const data = await this.service.list({ userId: req.user.id, customerId, search });
-      res.status(200).json({ success: true, data });
+      const { customerId, stage, search, page, limit } = req.query;
+      const result = await this.service.list({ userId: req.user.id, customerId, stage, search, page, limit });
+      res.status(200).json({
+        success: true,
+        data: result.data,
+        pagination: {
+          total: result.total,
+          page: result.page ?? 1,
+          limit: result.limit ?? result.total,
+          totalPages: result.totalPages ?? 1,
+        },
+      });
     } catch (err) {
       next(err);
     }
